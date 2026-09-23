@@ -1,36 +1,43 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: 'https://pathforge-api-ngmj.onrender.com/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Request interceptor to attach JWT token
+// Attach JWT token to requests
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('pathforge_token');
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// Response interceptor for session expiration
+// Handle expired sessions
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      // Don't auto-redirect if checking auth/me or login
-      const isAuthCheck = error.config.url.includes('/auth/me') || error.config.url.includes('/auth/login');
+    if (error.response?.status === 401) {
+      const url = error.config?.url || '';
+
+      const isAuthCheck =
+        url.includes('/auth/me') ||
+        url.includes('/auth/login');
+
       if (!isAuthCheck) {
         localStorage.removeItem('pathforge_token');
         localStorage.removeItem('pathforge_user');
       }
     }
+
     return Promise.reject(error);
   }
 );
