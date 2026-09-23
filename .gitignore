@@ -32,3 +32,5 @@ client/dist/
 scratch/
 *.zip
 *.tar.gz
+.vite/
+client/.vite/
