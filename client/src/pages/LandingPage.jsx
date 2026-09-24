@@ -17,7 +17,8 @@ import {
   MapPin,
   Clock,
   DollarSign,
-  ShieldCheck
+  ShieldCheck,
+  Loader2
 } from 'lucide-react';
 
 const LandingPage = () => {
@@ -28,6 +29,8 @@ const LandingPage = () => {
     placementRate: 88,
   });
   const [featuredInternships, setFeaturedInternships] = useState([]);
+  const [demoLoadingRole, setDemoLoadingRole] = useState(null);
+  const [demoError, setDemoError] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -64,6 +67,10 @@ const LandingPage = () => {
   }, []);
 
   const handleQuickDemo = async (role) => {
+    if (demoLoadingRole) return;
+    setDemoLoadingRole(role);
+    setDemoError('');
+
     const creds = {
       student: { email: 'student@pathforge.com', pass: 'password123', redirect: '/student/dashboard' },
       company: { email: 'company@pathforge.com', pass: 'password123', redirect: '/company/dashboard' },
@@ -71,10 +78,20 @@ const LandingPage = () => {
     };
     const target = creds[role];
     if (target) {
-      const res = await login(target.email, target.pass);
-      if (res.success) {
-        navigate(target.redirect);
+      try {
+        const res = await login(target.email, target.pass);
+        if (res.success) {
+          navigate(target.redirect);
+        } else {
+          setDemoError(res.message || 'Authentication error. Please retry.');
+        }
+      } catch (err) {
+        setDemoError('Connecting to PathForge services timed out. Please try again.');
+      } finally {
+        setDemoLoadingRole(null);
       }
+    } else {
+      setDemoLoadingRole(null);
     }
   };
 
@@ -130,26 +147,62 @@ const LandingPage = () => {
               <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
+                  disabled={!!demoLoadingRole}
                   onClick={() => handleQuickDemo('student')}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-brand border border-border-light dark:border-border-dark bg-bg-light dark:bg-bg-subtleDark hover:border-accent text-ink-heading dark:text-white transition-colors"
+                  className="px-3 py-2 text-xs font-semibold rounded-brand border border-border-light dark:border-border-dark bg-bg-light dark:bg-bg-subtleDark hover:border-accent text-ink-heading dark:text-white transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  🎓 Student
+                  {demoLoadingRole === 'student' ? (
+                    <span className="flex items-center gap-1 text-[11px]">
+                      <Loader2 className="w-3 h-3 animate-spin text-accent" />
+                      Loading...
+                    </span>
+                  ) : (
+                    '🎓 Student'
+                  )}
                 </button>
                 <button
                   type="button"
+                  disabled={!!demoLoadingRole}
                   onClick={() => handleQuickDemo('company')}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-brand border border-border-light dark:border-border-dark bg-bg-light dark:bg-bg-subtleDark hover:border-accent text-ink-heading dark:text-white transition-colors"
+                  className="px-3 py-2 text-xs font-semibold rounded-brand border border-border-light dark:border-border-dark bg-bg-light dark:bg-bg-subtleDark hover:border-accent text-ink-heading dark:text-white transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  🏢 Company
+                  {demoLoadingRole === 'company' ? (
+                    <span className="flex items-center gap-1 text-[11px]">
+                      <Loader2 className="w-3 h-3 animate-spin text-accent" />
+                      Loading...
+                    </span>
+                  ) : (
+                    '🏢 Company'
+                  )}
                 </button>
                 <button
                   type="button"
+                  disabled={!!demoLoadingRole}
                   onClick={() => handleQuickDemo('admin')}
-                  className="px-3 py-1.5 text-xs font-semibold rounded-brand border border-border-light dark:border-border-dark bg-bg-light dark:bg-bg-subtleDark hover:border-accent text-ink-heading dark:text-white transition-colors"
+                  className="px-3 py-2 text-xs font-semibold rounded-brand border border-border-light dark:border-border-dark bg-bg-light dark:bg-bg-subtleDark hover:border-accent text-ink-heading dark:text-white transition-colors flex items-center justify-center disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  👑 Admin
+                  {demoLoadingRole === 'admin' ? (
+                    <span className="flex items-center gap-1 text-[11px]">
+                      <Loader2 className="w-3 h-3 animate-spin text-accent" />
+                      Loading...
+                    </span>
+                  ) : (
+                    '👑 Admin'
+                  )}
                 </button>
               </div>
+
+              {demoLoadingRole && (
+                <p className="text-xs text-brand dark:text-accent font-medium mt-2.5 flex items-center justify-center gap-1.5 animate-pulse">
+                  <span>Connecting to PathForge services...</span>
+                </p>
+              )}
+
+              {demoError && (
+                <p className="text-xs text-red-600 dark:text-red-400 font-medium mt-2 text-center">
+                  {demoError}
+                </p>
+              )}
             </div>
           </div>
 

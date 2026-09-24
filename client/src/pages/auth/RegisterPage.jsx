@@ -3,13 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
-import { GraduationCap, Building, Plus, X, ArrowRight } from 'lucide-react';
+import { GraduationCap, Building, Plus, X, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 const RegisterPage = () => {
   const [role, setRole] = useState('student');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -42,11 +43,32 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // Client-side validation
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
+    if (!trimmedName) {
+      setError('Please provide your name.');
+      return;
+    }
+    if (!trimmedEmail || !trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
+      setError('Please provide a valid email address.');
+      return;
+    }
+    if (!password || password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+    if (role === 'company' && website.trim() && !website.includes('.')) {
+      setError('Please enter a valid website URL.');
+      return;
+    }
+
     setLoading(true);
 
     const payload = {
-      name,
-      email,
+      name: trimmedName,
+      email: trimmedEmail,
       password,
       role,
     };
@@ -155,11 +177,21 @@ const RegisterPage = () => {
 
             <Input
               label="Password"
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="•••••••• (minimum 6 characters)"
+              rightElement={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  className="text-ink-muted hover:text-ink-heading dark:hover:text-white transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
             />
 
             {/* Student Specific Fields */}
@@ -192,6 +224,12 @@ const RegisterPage = () => {
                       type="text"
                       value={skillInput}
                       onChange={(e) => setSkillInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleAddSkill(e);
+                        }
+                      }}
                       placeholder="Add a skill (e.g., Python, Docker)"
                       className="flex-1 px-3 py-2 text-xs rounded-brand border border-border-light dark:border-border-dark bg-white dark:bg-bg-cardDark text-ink-heading dark:text-white"
                     />

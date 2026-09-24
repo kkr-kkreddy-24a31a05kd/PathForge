@@ -152,6 +152,12 @@ const PostInternship = () => {
               type="text"
               value={skillInput}
               onChange={(e) => setSkillInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addSkill(e);
+                }
+              }}
               placeholder="e.g. React, Docker, Python, PostgreSQL"
               className="flex-1 px-3 py-2 text-xs rounded-brand border border-border-light dark:border-border-dark bg-bg-light dark:bg-bg-subtleDark text-ink-heading dark:text-white"
             />
@@ -241,6 +247,7 @@ const PostInternship = () => {
             label="Application Deadline"
             type="date"
             required
+            min={new Date().toISOString().split('T')[0]}
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
           />

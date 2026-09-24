@@ -12,13 +12,18 @@ import {
   CheckCircle,
   Clock,
   MapPin,
-  DollarSign
+  DollarSign,
+  AlertTriangle,
+  X
 } from 'lucide-react';
 
 const ManageInternships = () => {
   const [postings, setPostings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [feedbackMsg, setFeedbackMsg] = useState('');
+  const [deleteModalItem, setDeleteModalItem] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
 
   const fetchPostings = async () => {
@@ -43,25 +48,33 @@ const ManageInternships = () => {
 
   const toggleStatus = async (id, currentStatus) => {
     const newStatus = currentStatus === 'open' ? 'closed' : 'open';
+    setError('');
     try {
       await api.put(`/internships/${id}`, { status: newStatus });
       setPostings(prev =>
         prev.map(p => (p._id === id ? { ...p, status: newStatus } : p))
       );
+      setFeedbackMsg(`Posting status updated to "${newStatus}".`);
+      setTimeout(() => setFeedbackMsg(''), 3500);
     } catch (err) {
-      alert('Failed to update posting status');
+      setError(err.response?.data?.message || 'Failed to update posting status');
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to remove this internship posting and its applications?')) {
-      return;
-    }
+  const confirmDelete = async () => {
+    if (!deleteModalItem) return;
+    setDeleting(true);
+    setError('');
     try {
-      await api.delete(`/internships/${id}`);
-      setPostings(prev => prev.filter(p => p._id !== id));
+      await api.delete(`/internships/${deleteModalItem._id}`);
+      setPostings(prev => prev.filter(p => p._id !== deleteModalItem._id));
+      setFeedbackMsg(`"${deleteModalItem.title}" has been deleted.`);
+      setTimeout(() => setFeedbackMsg(''), 3500);
+      setDeleteModalItem(null);
     } catch (err) {
-      alert('Failed to delete internship');
+      setError(err.response?.data?.message || 'Failed to delete internship');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -80,6 +93,13 @@ const ManageInternships = () => {
           <PlusCircle className="w-4 h-4 mr-1.5" /> Post New Role
         </Button>
       </div>
+
+      {feedbackMsg && (
+        <div className="p-3.5 rounded-brand bg-teal-50 dark:bg-match/15 border border-match/30 text-match text-xs font-semibold flex items-center justify-between">
+          <span>{feedbackMsg}</span>
+          <button onClick={() => setFeedbackMsg('')} className="text-match hover:opacity-80"><X className="w-4 h-4" /></button>
+        </div>
+      )}
 
       {error && (
         <div className="p-3.5 rounded-brand bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 flex items-center justify-between">
@@ -157,9 +177,10 @@ const ManageInternships = () => {
                     {job.status === 'open' ? 'Close Role' : 'Re-open'}
                   </Button>
                   <button
-                    onClick={() => handleDelete(job._id)}
+                    onClick={() => setDeleteModalItem(job)}
                     className="p-2 rounded-brand text-gray-400 hover:text-red-600 transition-colors"
                     title="Delete posting"
+                    aria-label={`Delete ${job.title}`}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -167,6 +188,46 @@ const ManageInternships = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-bg-cardDark rounded-brand border border-border-light dark:border-border-dark max-w-md w-full p-6 shadow-elevated animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-3">
+              <span className="p-2 rounded-brand bg-red-100 dark:bg-red-950/50 text-red-600 dark:text-red-400">
+                <AlertTriangle className="w-5 h-5" />
+              </span>
+              <div className="flex-1">
+                <h3 className="text-base font-bold font-heading text-ink-heading dark:text-ink-headingDark">
+                  Delete Internship Posting
+                </h3>
+                <p className="text-xs text-ink-body dark:text-ink-bodyDark mt-1 leading-relaxed">
+                  Are you sure you want to permanently remove <strong>"{deleteModalItem.title}"</strong>? All candidate applications submitted for this role will also be deleted.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setDeleteModalItem(null)}
+                disabled={deleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={confirmDelete}
+                loading={deleting}
+              >
+                Delete Posting
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

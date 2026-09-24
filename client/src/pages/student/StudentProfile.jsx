@@ -154,6 +154,12 @@ const StudentProfile = () => {
               type="text"
               value={skillInput}
               onChange={(e) => setSkillInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  addSkill();
+                }
+              }}
               placeholder="Add a new skill (e.g. React, MongoDB, Python, Docker)"
               className="flex-1 px-3 py-2 text-xs rounded-brand border border-border-light dark:border-border-dark bg-bg-light dark:bg-bg-subtleDark text-ink-heading dark:text-white focus:outline-none focus:border-brand"
             />

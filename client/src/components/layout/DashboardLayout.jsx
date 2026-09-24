@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../context/AuthContext';
@@ -26,6 +26,33 @@ const DashboardLayout = () => {
   const { notifications, unreadCount, markAsRead, markAllAsRead, activeToast, dismissToast } = useSocket();
   const location = useLocation();
   const navigate = useNavigate();
+  const notifRef = useRef(null);
+
+  useEffect(() => {
+    if (!notifDropdownOpen) return;
+
+    const handleClickOutside = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifDropdownOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setNotifDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [notifDropdownOpen]);
 
   const getPageTitle = () => {
     const path = location.pathname;
@@ -141,11 +168,12 @@ const DashboardLayout = () => {
             )}
 
             {/* Notification Bell with Dropdown */}
-            <div className="relative">
+            <div className="relative" ref={notifRef}>
               <button
                 type="button"
                 onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
                 aria-label="Notifications"
+                aria-expanded={notifDropdownOpen}
                 className="relative p-2 rounded-brand text-ink-body dark:text-ink-bodyDark hover:bg-gray-100 dark:hover:bg-bg-subtleDark transition-colors"
               >
                 <Bell className="w-5 h-5" />

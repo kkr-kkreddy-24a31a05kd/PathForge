@@ -44,6 +44,8 @@ const ApplicantsList = () => {
   // Resume Drawer State
   const [viewResumeModal, setViewResumeModal] = useState(null);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
+  const [modalError, setModalError] = useState('');
 
   const fetchApplicants = async () => {
     setLoading(true);
@@ -70,6 +72,7 @@ const ApplicantsList = () => {
   }, [internshipId, statusFilter, sortBy]);
 
   const handleUpdateStatus = async (appId, newStatus, customNotes = '') => {
+    setError('');
     try {
       const res = await api.patch(`/applications/${appId}/status`, {
         status: newStatus,
@@ -79,14 +82,17 @@ const ApplicantsList = () => {
         setApplicants(prev =>
           prev.map(a => (a._id === appId ? { ...a, status: newStatus } : a))
         );
+        setSuccessMsg(`Applicant status updated to "${newStatus.replace('_', ' ')}".`);
+        setTimeout(() => setSuccessMsg(''), 3500);
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update applicant status');
+      setError(err.response?.data?.message || 'Failed to update applicant status');
     }
   };
 
   const handleOpenInterviewModal = (app) => {
     setTargetApplicant(app);
+    setModalError('');
     // Set default upcoming dates (tomorrow 2pm, day after 4pm)
     const now = new Date();
     const d1 = new Date(now.getTime() + 24 * 3600 * 1000);
@@ -108,8 +114,9 @@ const ApplicantsList = () => {
 
   const handleSubmitInterview = async (e) => {
     e.preventDefault();
+    setModalError('');
     if (!slot1) {
-      alert('Please configure at least one interview time slot.');
+      setModalError('Please configure at least one interview time slot.');
       return;
     }
 
@@ -133,10 +140,11 @@ const ApplicantsList = () => {
           prev.map(a => (a._id === targetApplicant._id ? { ...a, status: 'interview_scheduled' } : a))
         );
         setInterviewModalOpen(false);
-        alert('Interview proposal dispatched! The candidate has been notified in real time to select their preferred slot.');
+        setSuccessMsg('Interview proposal dispatched! The candidate has been notified in real time to select their preferred slot.');
+        setTimeout(() => setSuccessMsg(''), 5000);
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to propose interview slots');
+      setModalError(err.response?.data?.message || 'Failed to propose interview slots');
     } finally {
       setProposing(false);
     }
@@ -191,6 +199,13 @@ const ApplicantsList = () => {
         <div className="p-3.5 rounded-brand bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 flex items-center justify-between">
           <span>{error}</span>
           <button onClick={() => fetchApplicants()} className="underline font-semibold ml-2">Retry</button>
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="p-3.5 rounded-brand bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-2 animate-in fade-in duration-200">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <span>{successMsg}</span>
         </div>
       )}
 
@@ -290,7 +305,7 @@ const ApplicantsList = () => {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex flex-wrap lg:flex-col gap-2 w-full lg:w-48 justify-end">
+                  <div className="flex flex-col sm:flex-row lg:flex-col gap-2 w-full lg:w-48 shrink-0 justify-end">
                     <Button
                       variant="secondary"
                       size="sm"
@@ -383,6 +398,11 @@ const ApplicantsList = () => {
             </div>
 
             <form onSubmit={handleSubmitInterview} className="py-4 space-y-4 text-xs">
+              {modalError && (
+                <div className="p-2.5 rounded-brand bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300">
+                  {modalError}
+                </div>
+              )}
               <div className="space-y-3">
                 <label className="block text-xs font-semibold uppercase tracking-wider text-ink-heading dark:text-ink-headingDark">
                   Proposed Times (Candidate will select one):

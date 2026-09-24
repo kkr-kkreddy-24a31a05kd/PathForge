@@ -28,6 +28,7 @@ const BrowseInternships = () => {
   const [internships, setInternships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState(null);
+  const [mobileDetailOpen, setMobileDetailOpen] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [coverNote, setCoverNote] = useState('');
   const [customResumeText, setCustomResumeText] = useState('');
@@ -58,7 +59,10 @@ const BrowseInternships = () => {
         setInternships(res.data.internships);
         if (highlightedId) {
           const found = res.data.internships.find(j => j._id === highlightedId);
-          if (found) setSelectedJob(found);
+          if (found) {
+            setSelectedJob(found);
+            setMobileDetailOpen(true);
+          }
         }
       }
     } catch (error) {
@@ -227,7 +231,10 @@ const BrowseInternships = () => {
               return (
                 <div
                   key={job._id}
-                  onClick={() => setSelectedJob(job)}
+                  onClick={() => {
+                    setSelectedJob(job);
+                    setMobileDetailOpen(true);
+                  }}
                   className={`p-5 rounded-brand border transition-all cursor-pointer bg-white dark:bg-bg-cardDark ${
                     isSelected
                       ? 'border-brand dark:border-accent ring-2 ring-brand/10 dark:ring-accent/20'
@@ -306,8 +313,8 @@ const BrowseInternships = () => {
           )}
         </div>
 
-        {/* Sticky Detail Panel (1 col) */}
-        <div className="lg:col-span-1">
+        {/* Sticky Detail Panel (Desktop only: 1 col) */}
+        <div className="hidden lg:block lg:col-span-1">
           {selectedJob ? (
             <div className="bg-white dark:bg-bg-cardDark p-6 rounded-brand border border-border-light dark:border-border-dark shadow-subtle sticky top-20 space-y-6">
               <div>
@@ -409,6 +416,122 @@ const BrowseInternships = () => {
           )}
         </div>
       </div>
+
+      {/* Mobile Bottom Sheet / Modal for Selected Internship */}
+      {mobileDetailOpen && selectedJob && (
+        <div className="lg:hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-bg-cardDark rounded-t-2xl sm:rounded-brand border border-border-light dark:border-border-dark w-full max-w-lg max-h-[85vh] flex flex-col shadow-elevated animate-in slide-in-from-bottom-4 duration-200">
+            {/* Mobile Sheet Header */}
+            <div className="p-4 border-b border-border-light dark:border-border-dark flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-brand dark:text-blue-300 truncate">
+                    {selectedJob.company?.companyDetails?.companyName || selectedJob.company?.name}
+                  </span>
+                  <Badge variant="open" size="sm">{selectedJob.locationType}</Badge>
+                </div>
+                <h3 className="text-lg font-bold font-heading text-ink-heading dark:text-ink-headingDark leading-snug">
+                  {selectedJob.title}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileDetailOpen(false)}
+                aria-label="Close details"
+                className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-bg-subtleDark text-ink-muted dark:text-ink-mutedDark"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Mobile Sheet Content */}
+            <div className="p-4 overflow-y-auto space-y-4 text-xs">
+              <p className="text-ink-muted dark:text-ink-mutedDark flex items-center gap-1">
+                <MapPin className="w-3.5 h-3.5 shrink-0" /> {selectedJob.location} &bull; Deadline: {new Date(selectedJob.deadline).toLocaleDateString()}
+              </p>
+
+              {isStudent && (
+                <MatchScoreBadge
+                  score={selectedJob.matchScore || 0}
+                  size="md"
+                  totalCount={selectedJob.requiredSkills?.length}
+                  matchedCount={selectedJob.matchedSkills?.length}
+                />
+              )}
+
+              <div className="grid grid-cols-2 gap-2 p-3 rounded-brand bg-bg-light dark:bg-bg-subtleDark">
+                <div>
+                  <span className="text-[10px] uppercase text-ink-muted block font-semibold">Compensation</span>
+                  <span className="font-bold text-ink-heading dark:text-white">${selectedJob.stipend} / {selectedJob.stipendType}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase text-ink-muted block font-semibold">Duration</span>
+                  <span className="font-bold text-ink-heading dark:text-white">{selectedJob.duration || '3 Months'}</span>
+                </div>
+              </div>
+
+              <div>
+                <h4 className="font-semibold uppercase tracking-wider text-ink-heading dark:text-ink-headingDark mb-1">
+                  Role Description
+                </h4>
+                <p className="text-ink-body dark:text-ink-bodyDark leading-relaxed whitespace-pre-line">
+                  {selectedJob.description}
+                </p>
+              </div>
+
+              <div>
+                <h4 className="font-semibold uppercase tracking-wider text-ink-heading dark:text-ink-headingDark mb-2">
+                  Required Skills & Technologies
+                </h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {(selectedJob.requiredSkills || []).map((skill, idx) => (
+                    <Badge key={idx} variant="skill" size="sm">
+                      {skill}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Sheet Sticky Action Footer */}
+            <div className="p-4 border-t border-border-light dark:border-border-dark bg-white dark:bg-bg-cardDark">
+              {isStudent ? (
+                selectedJob.hasApplied ? (
+                  <Button variant="secondary" className="w-full" disabled>
+                    ✓ Already Applied ({selectedJob.applicationStatus || 'In Review'})
+                  </Button>
+                ) : (
+                  <Button
+                    variant="accent"
+                    className="w-full font-semibold shadow-md py-2.5"
+                    onClick={() => {
+                      setMobileDetailOpen(false);
+                      setApplyModalOpen(true);
+                    }}
+                  >
+                    Apply for this Internship
+                  </Button>
+                )
+              ) : !user ? (
+                <Button
+                  variant="accent"
+                  className="w-full font-semibold shadow-md py-2.5"
+                  onClick={() => {
+                    setMobileDetailOpen(false);
+                    navigate(`/login?redirect=${encodeURIComponent(`/browse?highlight=${selectedJob._id}`)}`);
+                  }}
+                >
+                  Sign In to Apply
+                </Button>
+              ) : (
+                <p className="text-xs text-center text-ink-muted dark:text-ink-mutedDark py-1">
+                  Logged in as <strong className="capitalize text-ink-heading dark:text-white">{user.role}</strong>. Applications are reserved for student accounts.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Application Submission Modal */}
       {applyModalOpen && selectedJob && (

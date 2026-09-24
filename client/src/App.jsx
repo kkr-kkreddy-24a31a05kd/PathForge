@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 
@@ -6,33 +6,41 @@ import { useAuth } from './context/AuthContext';
 import DashboardLayout from './components/layout/DashboardLayout';
 import Navbar from './components/layout/Navbar';
 
-// Public Pages
+// Public Pages (Eagerly loaded for instant first paint)
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
 import BrowseInternships from './pages/student/BrowseInternships';
 
-// Student Pages
-import StudentDashboard from './pages/student/StudentDashboard';
-import MyApplications from './pages/student/MyApplications';
-import ResumeChecker from './pages/student/ResumeChecker';
-import StudentProfile from './pages/student/StudentProfile';
-import StudentInterviews from './pages/student/StudentInterviews';
+// Student Pages (Code-split for optimized payload)
+const StudentDashboard = lazy(() => import('./pages/student/StudentDashboard'));
+const MyApplications = lazy(() => import('./pages/student/MyApplications'));
+const ResumeChecker = lazy(() => import('./pages/student/ResumeChecker'));
+const StudentProfile = lazy(() => import('./pages/student/StudentProfile'));
+const StudentInterviews = lazy(() => import('./pages/student/StudentInterviews'));
 
-// Company Pages
-import CompanyDashboard from './pages/company/CompanyDashboard';
-import PostInternship from './pages/company/PostInternship';
-import ManageInternships from './pages/company/ManageInternships';
-import ApplicantsList from './pages/company/ApplicantsList';
-import CompanyInterviews from './pages/company/CompanyInterviews';
-import CompanyAnalytics from './pages/company/CompanyAnalytics';
-import CompanyProfile from './pages/company/CompanyProfile';
+// Company Pages (Code-split)
+const CompanyDashboard = lazy(() => import('./pages/company/CompanyDashboard'));
+const PostInternship = lazy(() => import('./pages/company/PostInternship'));
+const ManageInternships = lazy(() => import('./pages/company/ManageInternships'));
+const ApplicantsList = lazy(() => import('./pages/company/ApplicantsList'));
+const CompanyInterviews = lazy(() => import('./pages/company/CompanyInterviews'));
+const CompanyAnalytics = lazy(() => import('./pages/company/CompanyAnalytics'));
+const CompanyProfile = lazy(() => import('./pages/company/CompanyProfile'));
 
-// Admin Pages
-import AdminDashboard from './pages/admin/AdminDashboard';
-import CompanyApprovals from './pages/admin/CompanyApprovals';
-import AdminAnalytics from './pages/admin/AdminAnalytics';
-import PlatformUsers from './pages/admin/PlatformUsers';
+// Admin Pages (Code-split)
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+const CompanyApprovals = lazy(() => import('./pages/admin/CompanyApprovals'));
+const AdminAnalytics = lazy(() => import('./pages/admin/AdminAnalytics'));
+const PlatformUsers = lazy(() => import('./pages/admin/PlatformUsers'));
+
+// Route Fallback Loader
+const RouteFallback = () => (
+  <div className="p-12 flex flex-col items-center justify-center min-h-[300px] text-xs text-ink-muted">
+    <div className="w-6 h-6 border-2 border-brand border-t-accent rounded-full animate-spin mb-3"></div>
+    <span>Loading workspace module...</span>
+  </div>
+);
 
 // Route Guards
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -64,6 +72,7 @@ function App() {
   const { isAuthenticated } = useAuth();
 
   return (
+    <Suspense fallback={<RouteFallback />}>
     <Routes>
       {/* Public Pages */}
       <Route path="/" element={<LandingPage />} />
@@ -141,6 +150,7 @@ function App() {
       {/* 404 Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   );
 }
 

@@ -10,7 +10,8 @@ import {
   CheckCircle2,
   Building,
   AlertCircle,
-  ExternalLink
+  ExternalLink,
+  X
 } from 'lucide-react';
 
 const StudentInterviews = () => {
@@ -19,6 +20,7 @@ const StudentInterviews = () => {
   const [confirmingId, setConfirmingId] = useState(null);
   const [selectedSlots, setSelectedSlots] = useState({});
   const [actionMessage, setActionMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const fetchInterviews = async () => {
     try {
@@ -40,12 +42,14 @@ const StudentInterviews = () => {
   const handleConfirmSlot = async (interviewId) => {
     const slot = selectedSlots[interviewId];
     if (!slot) {
-      alert('Please choose one of the available time slots.');
+      setErrorMessage('Please choose one of the available time slots.');
+      setTimeout(() => setErrorMessage(''), 4000);
       return;
     }
 
     setConfirmingId(interviewId);
     setActionMessage('');
+    setErrorMessage('');
 
     try {
       const res = await api.patch(`/interviews/${interviewId}/confirm`, {
@@ -58,7 +62,8 @@ const StudentInterviews = () => {
         setTimeout(() => setActionMessage(''), 4000);
       }
     } catch (error) {
-      alert(error.response?.data?.message || 'Failed to confirm interview slot.');
+      setErrorMessage(error.response?.data?.message || 'Failed to confirm interview slot.');
+      setTimeout(() => setErrorMessage(''), 5000);
     } finally {
       setConfirmingId(null);
     }
@@ -80,9 +85,22 @@ const StudentInterviews = () => {
       </div>
 
       {actionMessage && (
-        <div className="p-3 rounded-brand bg-teal-50 border border-match/30 text-match text-xs font-semibold flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4" />
-          {actionMessage}
+        <div className="p-3.5 rounded-brand bg-teal-50 dark:bg-match/15 border border-match/30 text-match text-xs font-semibold flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>{actionMessage}</span>
+          </div>
+          <button onClick={() => setActionMessage('')} className="hover:opacity-80"><X className="w-4 h-4" /></button>
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="p-3.5 rounded-brand bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs font-semibold flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            <span>{errorMessage}</span>
+          </div>
+          <button onClick={() => setErrorMessage('')} className="hover:opacity-80"><X className="w-4 h-4" /></button>
         </div>
       )}
 

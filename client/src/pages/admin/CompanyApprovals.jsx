@@ -62,7 +62,7 @@ const CompanyApprovals = () => {
         setTimeout(() => setActionMessage(''), 4000);
       }
     } catch (err) {
-      alert('Failed to process approval action');
+      setError(err.response?.data?.message || 'Failed to process approval action');
     } finally {
       setProcessingId(null);
     }

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../api/axiosClient';
+import { useTheme } from '../../context/ThemeContext';
 import {
   ResponsiveContainer,
   LineChart,
@@ -16,6 +17,7 @@ import {
 import { BarChart3, TrendingUp, Users, Award, ShieldCheck } from 'lucide-react';
 
 const AdminAnalytics = () => {
+  const { isDark } = useTheme();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -65,6 +67,26 @@ const AdminAnalytics = () => {
   const funnel = data?.placementFunnel || [];
   const userDist = data?.userDistribution || [];
 
+  const chartColors = {
+    grid: isDark ? '#24334F' : '#E5E8EF',
+    axisText: isDark ? '#94A3B8' : '#8D96A5',
+    applicationsLine: isDark ? '#60A5FA' : '#14213D',
+    barFill: isDark ? '#3B82F6' : '#14213D',
+    tooltipStyle: {
+      backgroundColor: isDark ? '#131C2E' : '#FFFFFF',
+      borderColor: isDark ? '#24334F' : '#E5E8EF',
+      color: isDark ? '#F1F5F9' : '#14213D',
+      borderRadius: '6px',
+      fontSize: '12px',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.2)'
+    },
+    legendWrapper: {
+      fontSize: '12px',
+      paddingTop: '10px',
+      color: isDark ? '#F1F5F9' : '#14213D'
+    }
+  };
+
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       <div>
@@ -93,26 +115,18 @@ const AdminAnalytics = () => {
         <div className="h-72 w-full pt-4">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={applicationsTimeline} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E8EF" />
-              <XAxis dataKey="date" stroke="#8D96A5" fontSize={11} />
-              <YAxis stroke="#8D96A5" fontSize={11} allowDecimals={false} />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: '#14213D',
-                  borderColor: '#14213D',
-                  color: '#fff',
-                  borderRadius: '6px',
-                  fontSize: '12px'
-                }}
-              />
-              <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+              <XAxis dataKey="date" stroke={chartColors.axisText} fontSize={11} />
+              <YAxis stroke={chartColors.axisText} fontSize={11} allowDecimals={false} />
+              <Tooltip contentStyle={chartColors.tooltipStyle} />
+              <Legend wrapperStyle={chartColors.legendWrapper} />
               <Line
                 type="monotone"
                 dataKey="applications"
                 name="Applications"
-                stroke="#14213D"
+                stroke={chartColors.applicationsLine}
                 strokeWidth={2.5}
-                dot={{ r: 3, fill: '#14213D' }}
+                dot={{ r: 3, fill: chartColors.applicationsLine }}
                 activeDot={{ r: 5 }}
               />
               <Line
@@ -152,18 +166,11 @@ const AdminAnalytics = () => {
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={topSkills} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke="#E5E8EF" />
-                <XAxis type="number" stroke="#8D96A5" fontSize={11} allowDecimals={false} />
-                <YAxis dataKey="name" type="category" stroke="#8D96A5" fontSize={11} width={85} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#14213D',
-                    color: '#fff',
-                    borderRadius: '6px',
-                    fontSize: '12px'
-                  }}
-                />
-                <Bar dataKey="count" name="Internships Requiring Skill" fill="#14213D" radius={[0, 4, 4, 0]} />
+                <CartesianGrid strokeDasharray="3 3" horizontal={true} stroke={chartColors.grid} />
+                <XAxis type="number" stroke={chartColors.axisText} fontSize={11} allowDecimals={false} />
+                <YAxis dataKey="name" type="category" stroke={chartColors.axisText} fontSize={11} width={85} />
+                <Tooltip contentStyle={chartColors.tooltipStyle} />
+                <Bar dataKey="count" name="Internships Requiring Skill" fill={chartColors.barFill} radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -183,20 +190,13 @@ const AdminAnalytics = () => {
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={funnel} margin={{ top: 20, right: 20, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#E5E8EF" />
-                <XAxis dataKey="stage" stroke="#8D96A5" fontSize={11} />
-                <YAxis stroke="#8D96A5" fontSize={11} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: '#14213D',
-                    color: '#fff',
-                    borderRadius: '6px',
-                    fontSize: '12px'
-                  }}
-                />
+                <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} />
+                <XAxis dataKey="stage" stroke={chartColors.axisText} fontSize={11} />
+                <YAxis stroke={chartColors.axisText} fontSize={11} allowDecimals={false} />
+                <Tooltip contentStyle={chartColors.tooltipStyle} />
                 <Bar dataKey="count" name="Candidates in Stage" radius={[4, 4, 0, 0]}>
                   {funnel.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.fill || '#14213D'} />
+                    <Cell key={`cell-${index}`} fill={entry.fill || chartColors.barFill} />
                   ))}
                 </Bar>
               </BarChart>

@@ -73,83 +73,146 @@ const PlatformUsers = () => {
           description="Try selecting a different role filter."
         />
       ) : (
-        <div className="bg-white dark:bg-bg-cardDark rounded-brand border border-border-light dark:border-border-dark shadow-subtle overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-bg-light dark:bg-bg-subtleDark border-b border-border-light dark:border-border-dark uppercase font-semibold text-[10px] tracking-wider text-ink-muted dark:text-ink-mutedDark">
-                <tr>
-                  <th className="p-4">User / Entity</th>
-                  <th className="p-4">Role</th>
-                  <th className="p-4">Details / Skills</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Registered</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-light dark:divide-border-dark">
-                {users.map((u) => (
-                  <tr key={u._id} className="hover:bg-gray-50/50 dark:hover:bg-bg-subtleDark/40">
-                    <td className="p-4">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-7 h-7 rounded-full bg-brand/10 dark:bg-brand-light/20 text-brand dark:text-blue-300 font-bold flex items-center justify-center text-xs flex-shrink-0">
-                          {u.name?.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <p className="font-semibold text-ink-heading dark:text-white leading-tight">
-                            {u.role === 'company' && u.companyDetails?.companyName ? u.companyDetails.companyName : u.name}
-                          </p>
-                          <p className="text-[11px] text-ink-muted dark:text-ink-mutedDark">{u.email}</p>
-                        </div>
-                      </div>
-                    </td>
+        <>
+          {/* Mobile Card Representation (< md) */}
+          <div className="md:hidden space-y-3">
+            {users.map((u) => (
+              <div
+                key={u._id}
+                className="bg-white dark:bg-bg-cardDark rounded-brand border border-border-light dark:border-border-dark p-4 shadow-subtle space-y-3"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-brand/10 dark:bg-brand-light/20 text-brand dark:text-blue-300 font-bold flex items-center justify-center text-xs flex-shrink-0">
+                      {u.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-ink-heading dark:text-white leading-tight text-sm">
+                        {u.role === 'company' && u.companyDetails?.companyName ? u.companyDetails.companyName : u.name}
+                      </p>
+                      <p className="text-[11px] text-ink-muted dark:text-ink-mutedDark">{u.email}</p>
+                    </div>
+                  </div>
 
-                    <td className="p-4">
-                      <span className="capitalize font-semibold text-ink-heading dark:text-white">
-                        {u.role}
-                      </span>
-                    </td>
+                  {u.role === 'company' ? (
+                    u.isApproved ? (
+                      <Badge variant="accepted" size="sm">Verified</Badge>
+                    ) : (
+                      <Badge variant="submitted" size="sm">Pending</Badge>
+                    )
+                  ) : (
+                    <Badge variant="open" size="sm">Active</Badge>
+                  )}
+                </div>
 
-                    <td className="p-4">
-                      {u.role === 'student' && (
-                        <div className="flex flex-wrap gap-1 max-w-xs">
-                          {(u.studentDetails?.skills || []).slice(0, 3).map((s, idx) => (
-                            <Badge key={idx} variant="skill" size="sm">{s}</Badge>
-                          ))}
-                          {(u.studentDetails?.skills || []).length > 3 && (
-                            <span className="text-[10px] text-ink-muted">+{u.studentDetails.skills.length - 3}</span>
-                          )}
-                        </div>
-                      )}
-                      {u.role === 'company' && (
-                        <span className="text-ink-muted">
-                          {u.companyDetails?.industry || 'Technology'} &bull; {u.companyDetails?.location || 'Remote'}
-                        </span>
-                      )}
-                      {u.role === 'admin' && (
-                        <span className="text-match font-semibold">Institutional Director</span>
-                      )}
-                    </td>
+                <div className="flex items-center justify-between text-xs pt-2 border-t border-border-light dark:border-border-dark">
+                  <span className="capitalize font-semibold text-ink-heading dark:text-white">
+                    {u.role}
+                  </span>
+                  <span className="text-[11px] text-ink-muted dark:text-ink-mutedDark">
+                    Joined {new Date(u.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
 
-                    <td className="p-4">
-                      {u.role === 'company' ? (
-                        u.isApproved ? (
-                          <Badge variant="accepted" size="sm">Verified</Badge>
-                        ) : (
-                          <Badge variant="submitted" size="sm">Pending Approval</Badge>
-                        )
-                      ) : (
-                        <Badge variant="open" size="sm">Active</Badge>
-                      )}
-                    </td>
+                {u.role === 'student' && (u.studentDetails?.skills || []).length > 0 && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {u.studentDetails.skills.slice(0, 4).map((s, idx) => (
+                      <Badge key={idx} variant="skill" size="sm">{s}</Badge>
+                    ))}
+                    {u.studentDetails.skills.length > 4 && (
+                      <span className="text-[10px] text-ink-muted self-center">+{u.studentDetails.skills.length - 4}</span>
+                    )}
+                  </div>
+                )}
 
-                    <td className="p-4 text-ink-muted whitespace-nowrap">
-                      {new Date(u.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                {u.role === 'company' && (
+                  <p className="text-xs text-ink-muted dark:text-ink-mutedDark">
+                    {u.companyDetails?.industry || 'Technology'} &bull; {u.companyDetails?.location || 'Remote'}
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
-        </div>
+
+          {/* Desktop Table View (>= md) */}
+          <div className="hidden md:block bg-white dark:bg-bg-cardDark rounded-brand border border-border-light dark:border-border-dark shadow-subtle overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-bg-light dark:bg-bg-subtleDark border-b border-border-light dark:border-border-dark uppercase font-semibold text-[10px] tracking-wider text-ink-muted dark:text-ink-mutedDark">
+                  <tr>
+                    <th className="p-4">User / Entity</th>
+                    <th className="p-4">Role</th>
+                    <th className="p-4">Details / Skills</th>
+                    <th className="p-4">Status</th>
+                    <th className="p-4">Registered</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-light dark:divide-border-dark">
+                  {users.map((u) => (
+                    <tr key={u._id} className="hover:bg-gray-50/50 dark:hover:bg-bg-subtleDark/40">
+                      <td className="p-4">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-7 h-7 rounded-full bg-brand/10 dark:bg-brand-light/20 text-brand dark:text-blue-300 font-bold flex items-center justify-center text-xs flex-shrink-0">
+                            {u.name?.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-ink-heading dark:text-white leading-tight">
+                              {u.role === 'company' && u.companyDetails?.companyName ? u.companyDetails.companyName : u.name}
+                            </p>
+                            <p className="text-[11px] text-ink-muted dark:text-ink-mutedDark">{u.email}</p>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="p-4">
+                        <span className="capitalize font-semibold text-ink-heading dark:text-white">
+                          {u.role}
+                        </span>
+                      </td>
+
+                      <td className="p-4">
+                        {u.role === 'student' && (
+                          <div className="flex flex-wrap gap-1 max-w-xs">
+                            {(u.studentDetails?.skills || []).slice(0, 3).map((s, idx) => (
+                              <Badge key={idx} variant="skill" size="sm">{s}</Badge>
+                            ))}
+                            {(u.studentDetails?.skills || []).length > 3 && (
+                              <span className="text-[10px] text-ink-muted">+{u.studentDetails.skills.length - 3}</span>
+                            )}
+                          </div>
+                        )}
+                        {u.role === 'company' && (
+                          <span className="text-ink-muted">
+                            {u.companyDetails?.industry || 'Technology'} &bull; {u.companyDetails?.location || 'Remote'}
+                          </span>
+                        )}
+                        {u.role === 'admin' && (
+                          <span className="text-match font-semibold">Institutional Director</span>
+                        )}
+                      </td>
+
+                      <td className="p-4">
+                        {u.role === 'company' ? (
+                          u.isApproved ? (
+                            <Badge variant="accepted" size="sm">Verified</Badge>
+                          ) : (
+                            <Badge variant="submitted" size="sm">Pending Approval</Badge>
+                          )
+                        ) : (
+                          <Badge variant="open" size="sm">Active</Badge>
+                        )}
+                      </td>
+
+                      <td className="p-4 text-ink-muted whitespace-nowrap">
+                        {new Date(u.createdAt).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

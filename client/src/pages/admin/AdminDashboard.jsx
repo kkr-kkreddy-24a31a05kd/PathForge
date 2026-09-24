@@ -14,7 +14,8 @@ import {
   XCircle,
   BarChart3,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  AlertCircle
 } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -22,6 +23,7 @@ const AdminDashboard = () => {
   const [pendingCompanies, setPendingCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [actionMessage, setActionMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
   const fetchAdminData = async () => {
@@ -45,6 +47,7 @@ const AdminDashboard = () => {
   }, []);
 
   const handleApprove = async (id, name) => {
+    setErrorMessage('');
     try {
       const res = await api.patch(`/admin/companies/${id}/approve`, { isApproved: true });
       if (res.data.success) {
@@ -54,7 +57,8 @@ const AdminDashboard = () => {
         setTimeout(() => setActionMessage(''), 4000);
       }
     } catch (err) {
-      alert('Failed to approve company');
+      setErrorMessage(err.response?.data?.message || 'Failed to approve company');
+      setTimeout(() => setErrorMessage(''), 4000);
     }
   };
 
@@ -99,6 +103,13 @@ const AdminDashboard = () => {
         <div className="p-3.5 rounded-brand bg-teal-50 border border-match/30 text-match text-xs font-semibold flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" />
           {actionMessage}
+        </div>
+      )}
+
+      {errorMessage && (
+        <div className="p-3.5 rounded-brand bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs font-medium flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 text-red-500" />
+          {errorMessage}
         </div>
       )}
 
