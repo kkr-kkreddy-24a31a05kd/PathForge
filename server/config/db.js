@@ -10,7 +10,12 @@ export const connectDB = async () => {
   const isAtlasConfigured = Boolean(process.env.MONGODB_URI && process.env.MONGODB_URI.trim());
 
   if (!isAtlasConfigured) {
-    console.log('⚡ No MONGODB_URI found. Initializing embedded MongoDB Memory Server for zero-friction setup...');
+    if (process.env.NODE_ENV === 'production') {
+      const errMsg = 'FATAL: MONGODB_URI is not configured in production. Persistent MongoDB is required. In-memory database fallback is disabled in production.';
+      console.error(`❌ ${errMsg}`);
+      throw new Error(errMsg);
+    }
+    console.log('⚡ No MONGODB_URI found. Initializing embedded MongoDB Memory Server for zero-friction local development...');
     mongoServerInstance = await MongoMemoryServer.create();
     const mongoUri = mongoServerInstance.getUri();
     console.log(`📦 Embedded MongoDB started successfully at: ${mongoUri}`);
@@ -27,7 +32,8 @@ export const connectDB = async () => {
   // When MONGODB_URI is configured, connect strictly to MongoDB Atlas without falling back to memory server
   try {
     mongoose.connection.on('error', (err) => {
-      console.error('⚠️ MongoDB Connection Error:', err?.message || err);
+      const safeErr = (err?.message || String(err)).replace(/\/\/([^:]+):([^@]+)@/, '//***:***@');
+      console.error('⚠️ MongoDB Connection Error:', safeErr);
     });
 
     mongoose.connection.on('disconnected', () => {
@@ -46,7 +52,8 @@ export const connectDB = async () => {
     console.log(`✅ MongoDB Connected: ${conn.connection.host} (DB: ${conn.connection.name})`);
     return conn;
   } catch (error) {
-    console.error(`❌ MongoDB Atlas Connection Error: ${error.message}`);
+    const safeMsg = (error.message || '').replace(/\/\/([^:]+):([^@]+)@/, '//***:***@');
+    console.error(`❌ MongoDB Atlas Connection Error: ${safeMsg}`);
     // Explicitly do NOT fall back to an in-memory database when Atlas is configured
     throw error;
   }

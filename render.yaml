@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: pathforge-api
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false
+      - key: CLIENT_URL
+        value: https://kkr-kkreddy-24a31a05kd.github.io
+      - key: SEED_DEMO_DATA
+        value: "true"

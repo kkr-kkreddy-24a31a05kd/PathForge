@@ -36,7 +36,23 @@ export const SocketProvider = ({ children }) => {
 
     fetchNotifications();
 
-    const socketUrl = window.location.origin;
+    const getSocketUrl = () => {
+      if (import.meta.env.VITE_SOCKET_URL) {
+        return import.meta.env.VITE_SOCKET_URL.trim().replace(/\/+$/, '');
+      }
+      if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL.trim().replace(/\/api\/?$/, '').replace(/\/+$/, '');
+      }
+      if (
+        typeof window !== 'undefined' &&
+        (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+      ) {
+        return 'http://localhost:5000';
+      }
+      return 'https://pathforge-api-ngmj.onrender.com';
+    };
+
+    const socketUrl = getSocketUrl();
     const newSocket = io(socketUrl, {
       auth: { token: `Bearer ${token}` },
       reconnectionAttempts: 5,
