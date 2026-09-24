@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axiosClient';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/common/Button';
@@ -22,6 +22,7 @@ import {
 
 const BrowseInternships = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const highlightedId = searchParams.get('highlight');
 
   const [internships, setInternships] = useState([]);
@@ -386,9 +387,17 @@ const BrowseInternships = () => {
                       Apply for this Internship
                     </Button>
                   )
+                ) : !user ? (
+                  <Button
+                    variant="accent"
+                    className="w-full font-semibold shadow-md"
+                    onClick={() => navigate(`/login?redirect=${encodeURIComponent(`/browse?highlight=${selectedJob._id}`)}`)}
+                  >
+                    Sign In to Apply
+                  </Button>
                 ) : (
-                  <p className="text-xs text-center text-ink-muted dark:text-ink-mutedDark">
-                    Sign in with a Student account to submit your application.
+                  <p className="text-xs text-center text-ink-muted dark:text-ink-mutedDark py-1">
+                    Logged in as <strong className="capitalize text-ink-heading dark:text-white">{user.role}</strong>. Applications are reserved for student candidate accounts.
                   </p>
                 )}
               </div>

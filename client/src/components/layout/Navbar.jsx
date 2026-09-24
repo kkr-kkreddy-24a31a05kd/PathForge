@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import Button from '../common/Button';
@@ -9,12 +9,26 @@ const Navbar = () => {
   const { user, isAuthenticated } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const getDashboardPath = () => {
     if (!user) return '/login';
     if (user.role === 'admin') return '/admin/dashboard';
     if (user.role === 'company') return '/company/dashboard';
     return '/student/dashboard';
+  };
+
+  const handleNavAnchor = (e, targetId) => {
+    e.preventDefault();
+    if (location.pathname === '/') {
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+        window.history.pushState(null, '', `#${targetId}`);
+      }
+    } else {
+      navigate(`/#${targetId}`);
+    }
   };
 
   return (
@@ -41,13 +55,15 @@ const Navbar = () => {
           </Link>
           <a
             href="#features"
-            className="text-sm font-medium text-ink-body dark:text-ink-bodyDark hover:text-brand dark:hover:text-white transition-colors"
+            onClick={(e) => handleNavAnchor(e, 'features')}
+            className="text-sm font-medium text-ink-body dark:text-ink-bodyDark hover:text-brand dark:hover:text-white transition-colors cursor-pointer"
           >
             How It Works
           </a>
           <a
             href="#for-companies"
-            className="text-sm font-medium text-ink-body dark:text-ink-bodyDark hover:text-brand dark:hover:text-white transition-colors"
+            onClick={(e) => handleNavAnchor(e, 'for-companies')}
+            className="text-sm font-medium text-ink-body dark:text-ink-bodyDark hover:text-brand dark:hover:text-white transition-colors cursor-pointer"
           >
             For Enterprise
           </a>

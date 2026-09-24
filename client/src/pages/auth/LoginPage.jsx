@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
@@ -12,6 +12,8 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectUrl = searchParams.get('redirect');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,9 +24,15 @@ const LoginPage = () => {
     setLoading(false);
 
     if (res.success) {
-      if (res.user.role === 'admin') navigate('/admin/dashboard');
-      else if (res.user.role === 'company') navigate('/company/dashboard');
-      else navigate('/student/dashboard');
+      if (redirectUrl && res.user.role === 'student') {
+        navigate(redirectUrl);
+      } else if (res.user.role === 'admin') {
+        navigate('/admin/dashboard');
+      } else if (res.user.role === 'company') {
+        navigate('/company/dashboard');
+      } else {
+        navigate('/student/dashboard');
+      }
     } else {
       setError(res.message);
     }

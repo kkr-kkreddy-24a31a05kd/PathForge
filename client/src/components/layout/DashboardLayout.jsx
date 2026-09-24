@@ -96,13 +96,16 @@ const DashboardLayout = () => {
         <div
           className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
           onClick={() => setMobileMenuOpen(false)}
+          aria-hidden="true"
         />
       )}
 
       {/* Mobile Sidebar */}
       <div
+        id="mobile-sidebar-drawer"
+        aria-label="Navigation sidebar"
         className={`fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-200 ease-in-out lg:hidden ${
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-100'
+          mobileMenuOpen ? 'translate-x-0 pointer-events-auto' : '-translate-x-full pointer-events-none'
         }`}
       >
         <Sidebar onCloseMobile={() => setMobileMenuOpen(false)} />
@@ -118,6 +121,8 @@ const DashboardLayout = () => {
               onClick={() => setMobileMenuOpen(true)}
               className="lg:hidden p-2 rounded-brand text-ink-body dark:text-ink-bodyDark hover:bg-gray-100 dark:hover:bg-bg-subtleDark"
               aria-label="Open sidebar"
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-sidebar-drawer"
             >
               <Menu className="w-5 h-5" />
             </button>

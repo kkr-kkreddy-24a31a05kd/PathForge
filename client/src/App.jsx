@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext';
 
 // Layout
 import DashboardLayout from './components/layout/DashboardLayout';
+import Navbar from './components/layout/Navbar';
 
 // Public Pages
 import LandingPage from './pages/LandingPage';
@@ -76,8 +77,11 @@ function App() {
           isAuthenticated ? (
             <DashboardLayout />
           ) : (
-            <div className="min-h-screen bg-bg-light dark:bg-bg-dark">
-              <BrowseInternships />
+            <div className="min-h-screen bg-bg-light dark:bg-bg-dark flex flex-col">
+              <Navbar />
+              <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+                <BrowseInternships />
+              </main>
             </div>
           )
         }
